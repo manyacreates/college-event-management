@@ -1,17 +1,30 @@
 from flask import Flask, jsonify
 
-from app.extensions import db, bcrypt
+from app.extensions import db, bcrypt, login_manager
 from app.routes.auth import auth_bp
+from config import DevelopmentConfig
 
 
-def create_app(config_class=None):
+def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
-
-    if config_class:
-        app.config.from_object(config_class)
+    app.config.from_object(config_class)
 
     db.init_app(app)
     bcrypt.init_app(app)
+    login_manager.init_app(app)
+
+    from app.models.user import User
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.session.get(User, int(user_id))
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return jsonify({
+            "success": False,
+            "message": "Authentication required"
+        }), 401
 
     app.register_blueprint(auth_bp)
 
