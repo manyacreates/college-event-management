@@ -1,4 +1,5 @@
 import pytest
+from flask import g
 
 from app import create_app
 from app.extensions import db
@@ -9,6 +10,12 @@ from config import TestingConfig
 @pytest.fixture
 def app():
     app = create_app(TestingConfig)
+
+    @app.before_request
+    def reset_cached_login_user():
+        # The test keeps one app context open, so g would otherwise
+        # remember the last logged-in user across different clients.
+        g.pop("_login_user", None)
 
     with app.app_context():
         db.create_all()
