@@ -60,3 +60,13 @@ def student_client(app):
     return _logged_in_client(
         app, "Student User", "student@example.com", "studentpass123", "student"
     )
+
+
+@pytest.fixture
+def make_student_client(app):
+    """A factory: call it with an email to get another logged-in student."""
+    def factory(email):
+        return _logged_in_client(
+            app, "Student " + email, email, "studentpass123", "student"
+        )
+    return factory
