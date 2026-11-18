@@ -1,16 +1,23 @@
 import pytest
 
 from app import create_app
+from app.extensions import db
 from config import TestingConfig
 
 
 @pytest.fixture
 def app():
-    """A fresh application configured for testing."""
-    return create_app(TestingConfig)
+    app = create_app(TestingConfig)
+
+    with app.app_context():
+        db.create_all()
+
+        yield app
+
+        db.session.remove()
+        db.drop_all()
 
 
 @pytest.fixture
 def client(app):
-    """A test client that sends fake HTTP requests to the app."""
     return app.test_client()
