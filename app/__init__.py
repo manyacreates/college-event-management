@@ -1,6 +1,8 @@
 from flask import Flask, jsonify
 
+from app.cli import create_admin
 from app.extensions import db, bcrypt, login_manager
+from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
 from config import DevelopmentConfig
 
@@ -27,6 +29,8 @@ def create_app(config_class=DevelopmentConfig):
         }), 401
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+    app.cli.add_command(create_admin)
 
     @app.route("/health", methods=["GET"])
     def health():
