@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Secrets
+.env
+
+# Local databases and instance data
+instance/
+*.db
+*.sqlite3
+
+# Editor / OS
+.vscode/
+.DS_Store
+
+# Coverage
+.coverage
+htmlcov/
+
+SECRET_KEY=41fa37b44ecb759eb2c3ae72c92d604399439af777125e01fd2c4f43e2495220
+
