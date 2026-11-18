@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from app.extensions import db
-
+from app.models.registration import count_active
 CATEGORIES = [
     "Technical",
     "Cultural",
@@ -44,8 +44,13 @@ class Event(db.Model):
         onupdate=_utc_now,
         nullable=False,
     )
-
+    registrations = db.relationship(
+        "Registration",
+        back_populates="event",
+        cascade="all, delete-orphan",
+    )
     def to_dict(self):
+        registered_count = count_active(self.id)
         return {
             "id": self.id,
             "title": self.title,
@@ -58,4 +63,6 @@ class Event(db.Model):
             "capacity": self.capacity,
             "image_url": self.image_url,
             "organizer_id": self.organizer_id,
+            "registered_count": registered_count,
+            "spots_left": max(self.capacity - registered_count, 0),
         }
