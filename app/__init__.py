@@ -4,6 +4,7 @@ from app.cli import create_admin
 from app.extensions import db, bcrypt, login_manager
 from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
+from app.routes.events import events_bp
 from config import DevelopmentConfig
 
 
@@ -30,6 +31,7 @@ def create_app(config_class=DevelopmentConfig):
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(events_bp)
     app.cli.add_command(create_admin)
 
     @app.route("/health", methods=["GET"])
