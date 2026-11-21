@@ -1,0 +1,30 @@
+{% macro event_card(event) %}
+<div class="col-md-6 col-lg-4">
+  <article class="event-card h-100">
+    {% if event.image_url %}
+      <img src="{{ event.image_url }}" alt="" class="event-card-img">
+    {% else %}
+      <div class="event-card-img event-card-placeholder"><i class="bi bi-calendar-event"></i></div>
+    {% endif %}
+
+    <div class="event-card-body">
+      <span class="badge badge-category">{{ event.category }}</span>
+      <h3 class="event-card-title">{{ event.title }}</h3>
+
+      <ul class="event-meta list-unstyled">
+        <li><i class="bi bi-calendar3"></i> {{ event.event_date|pretty_date }} &middot; {{ event.start_time }}</li>
+        <li><i class="bi bi-geo-alt"></i> {{ event.venue }}</li>
+      </ul>
+
+      <div class="d-flex justify-content-between align-items-center mt-auto">
+        {% if event.spots_left > 0 %}
+          <span class="spots spots-open">{{ event.spots_left }} spots left</span>
+        {% else %}
+          <span class="spots spots-full">Fully booked</span>
+        {% endif %}
+        <a href="/events/{{ event.id }}" class="btn btn-sm btn-primary">View details</a>
+      </div>
+    </div>
+  </article>
+</div>
+{% endmacro %}
