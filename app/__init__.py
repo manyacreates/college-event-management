@@ -8,6 +8,7 @@ from app.routes.events import events_bp
 from config import DevelopmentConfig
 from app.routes.registrations import registrations_bp
 from app.routes.notifications import notifications_bp
+from app.routes.feedback import feedback_bp
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
@@ -35,6 +36,7 @@ def create_app(config_class=DevelopmentConfig):
     app.register_blueprint(events_bp)
     app.register_blueprint(registrations_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(feedback_bp)
     app.cli.add_command(create_admin)
 
     @app.route("/health", methods=["GET"])
