@@ -49,6 +49,11 @@ class Event(db.Model):
         back_populates="event",
         cascade="all, delete-orphan",
     )
+    notifications = db.relationship(
+        "Notification",
+        back_populates="event",
+        passive_deletes=True,
+    )
     def to_dict(self):
         registered_count = count_active(self.id)
         return {

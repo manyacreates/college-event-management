@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Blueprint, jsonify
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
-
+from app.services.notifications import notify_user
 from app.decorators import admin_required, student_required
 from app.extensions import db
 from app.models.event import Event
@@ -61,7 +61,10 @@ def register_for_event(event_id):
             user_id=current_user.id, event_id=event_id, status=STATUS_REGISTERED
         )
         db.session.add(registration)
-
+    notify_user(
+        current_user.id, event_id,
+        f"You have registered for {event.title}.",
+    )
     try:
         db.session.commit()
     except IntegrityError:
@@ -83,6 +86,11 @@ def cancel_registration(event_id):
         return _error("You are not registered for this event", 404)
 
     registration.status = STATUS_CANCELLED
+    event = db.session.get(Event, event_id)
+    notify_user(
+        current_user.id, event_id,
+        f"Your registration for {event.title} has been cancelled.",
+    )
     db.session.commit()
 
     return jsonify({
