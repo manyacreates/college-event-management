@@ -1,0 +1,67 @@
+{% extends "admin/layout.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block panel %}
+<a href="/admin/events" class="text-decoration-none"><i class="bi bi-arrow-left"></i> All events</a>
+<h1 class="h3 fw-bold mt-2">{{ event.title }}</h1>
+<p class="text-muted">{{ event.event_date|pretty_date }} &middot; {{ event.venue }} &middot; {{ event.registered_count }}/{{ event.capacity }} registered</p>
+
+<div class="row g-4" data-event-id="{{ event.id }}" id="root">
+  <div class="col-xl-6">
+    <div class="panel-card mb-4">
+      <h2 class="h5 fw-bold mb-3">Participants</h2>
+      <div id="participants"></div>
+    </div>
+    <div class="panel-card">
+      <h2 class="h5 fw-bold mb-3">Publish announcement</h2>
+      <form id="announceForm">
+        <textarea class="form-control mb-3" id="announceText" rows="3" maxlength="400" placeholder="Message for registered students" required></textarea>
+        <button class="btn btn-primary" type="submit">Send to registered students</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-6">
+    <div class="panel-card">
+      <h2 class="h5 fw-bold mb-1">Feedback</h2>
+      <p class="text-muted" id="avgLine"></p>
+      <div id="feedbackList"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const eventId = document.getElementById("root").dataset.eventId;
+
+async function loadParticipants() {
+  const r = await api(`/api/events/${eventId}/participants`);
+  const list = r.body.participants || [];
+  document.getElementById("participants").innerHTML = list.length
+    ? list.map(p => `<div class="list-row"><div><strong>${esc(p.name)}</strong><div class="small text-muted">${esc(p.email)}</div></div></div>`).join("")
+    : emptyStateHtml("bi-people", "No participants yet", "Students who register will appear here.");
+}
+
+async function loadFeedback() {
+  const r = await api(`/api/events/${eventId}/feedback`);
+  const list = r.body.feedback || [];
+  document.getElementById("avgLine").textContent = list.length
+    ? `Average rating: ${r.body.average_rating} / 5 (${r.body.count} responses)` : "";
+  document.getElementById("feedbackList").innerHTML = list.length
+    ? list.map(f => `<div class="note-row"><div><strong>${"★".repeat(f.rating)}${"☆".repeat(5 - f.rating)}</strong> ${esc(f.student_name)}
+        <div class="small text-muted">${esc(f.comments || "No comment")}</div></div></div>`).join("")
+    : emptyStateHtml("bi-chat-square-text", "No feedback yet", "Feedback appears after the event ends.");
+}
+
+document.getElementById("announceForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const r = await api(`/api/events/${eventId}/announcements`, "POST",
+    { message: document.getElementById("announceText").value });
+  showToast(r.ok ? `Announcement sent to ${r.body.notified} student(s).` : r.body.message, r.ok ? "success" : "danger");
+  if (r.ok) document.getElementById("announceText").value = "";
+});
+
+loadParticipants();
+loadFeedback();
+</script>
+{% endblock %}

@@ -111,3 +111,25 @@ def student_dashboard():
 @page_role("student", "/login")
 def notifications_page():
     return render_template("student/notifications.html", active="notifications")
+
+# ---------- Admin pages ----------
+
+@pages_bp.route("/admin/dashboard")
+@page_role("admin", "/admin/login")
+def admin_dashboard():
+    return render_template("admin/dashboard.html", active="dashboard")
+
+
+@pages_bp.route("/admin/events")
+@page_role("admin", "/admin/login")
+def admin_events():
+    return render_template("admin/events.html", active="events", categories=CATEGORIES)
+
+
+@pages_bp.route("/admin/events/<int:event_id>")
+@page_role("admin", "/admin/login")
+def admin_event_manage(event_id):
+    event = db.session.get(Event, event_id)
+    if event is None:
+        abort(404)
+    return render_template("admin/manage.html", active="events", event=event.to_dict())

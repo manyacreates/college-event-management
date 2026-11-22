@@ -1,0 +1,79 @@
+{% extends "admin/layout.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block panel %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Welcome, {{ current_user.name }}</h1>
+    <p class="text-muted mb-0">Event and registration overview</p>
+  </div>
+  <a href="/admin/events" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New event</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3"><div class="stat-card"><span>Students</span><strong id="sUsers">-</strong></div></div>
+  <div class="col-6 col-xl-3"><div class="stat-card"><span>Total events</span><strong id="sEvents">-</strong></div></div>
+  <div class="col-6 col-xl-3"><div class="stat-card"><span>Upcoming</span><strong id="sUpcoming">-</strong></div></div>
+  <div class="col-6 col-xl-3"><div class="stat-card"><span>Completed</span><strong id="sCompleted">-</strong></div></div>
+  <div class="col-6 col-xl-3"><div class="stat-card"><span>Registrations</span><strong id="sRegs">-</strong></div></div>
+  <div class="col-6 col-xl-3"><div class="stat-card"><span>Average rating</span><strong id="sRating">-</strong></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-7">
+    <div class="panel-card">
+      <h2 class="h5 fw-bold mb-3">Most popular events</h2>
+      <canvas id="popularChart" height="140"></canvas>
+      <div id="chartEmpty" class="d-none"></div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="panel-card">
+      <h2 class="h5 fw-bold mb-3">Top events</h2>
+      <div id="popularList"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+async function loadStats() {
+  const r = await api("/api/admin/stats");
+  const s = r.body.stats;
+  if (!s) return;
+
+  document.getElementById("sUsers").textContent = s.total_users;
+  document.getElementById("sEvents").textContent = s.total_events;
+  document.getElementById("sUpcoming").textContent = s.upcoming_events;
+  document.getElementById("sCompleted").textContent = s.completed_events;
+  document.getElementById("sRegs").textContent = s.total_registrations;
+  document.getElementById("sRating").textContent = s.average_rating ?? "n/a";
+
+  const popular = s.popular_events;
+  if (!popular.length) {
+    document.getElementById("popularChart").classList.add("d-none");
+    document.getElementById("chartEmpty").classList.remove("d-none");
+    document.getElementById("chartEmpty").innerHTML = emptyStateHtml("bi-bar-chart", "No data yet", "Create events to see statistics.");
+    document.getElementById("popularList").innerHTML = '<p class="text-muted mb-0">Nothing yet.</p>';
+    return;
+  }
+
+  new Chart(document.getElementById("popularChart"), {
+    type: "bar",
+    data: {
+      labels: popular.map(e => e.title),
+      datasets: [{ label: "Registrations", data: popular.map(e => e.registrations), backgroundColor: "#4f46e5", borderRadius: 8 }],
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+
+  document.getElementById("popularList").innerHTML = popular.map(e => `
+    <a href="/admin/events/${e.id}" class="list-row">
+      <strong>${esc(e.title)}</strong><span class="badge text-bg-primary">${e.registrations}</span>
+    </a>`).join("");
+}
+loadStats();
+</script>
+{% endblock %}

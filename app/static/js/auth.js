@@ -62,7 +62,8 @@ form.addEventListener("submit", async (event) => {
     }
 
     // Dashboards are built in the next steps, so go home for now.
-    window.location.href = "/";
+    const role = login.body.user.role;
+    window.location.href = role === "admin" ? "/admin/dashboard" : "/dashboard";
   } catch (error) {
     showError("Could not reach the server. Please try again.");
   } finally {

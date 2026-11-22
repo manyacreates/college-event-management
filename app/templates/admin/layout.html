@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dash">
+  <aside class="sidebar">
+    <a href="/admin/dashboard" class="side-link {% if active == 'dashboard' %}active{% endif %}"><i class="bi bi-grid"></i> Dashboard</a>
+    <a href="/admin/events" class="side-link {% if active == 'events' %}active{% endif %}"><i class="bi bi-calendar-event"></i> Manage events</a>
+    <a href="/events" class="side-link"><i class="bi bi-eye"></i> Public site</a>
+  </aside>
+  <div class="dash-main">{% block panel %}{% endblock %}</div>
+</div>
+{% endblock %}
