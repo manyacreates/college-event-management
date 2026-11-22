@@ -1,6 +1,8 @@
 from datetime import date, datetime
+from functools import wraps
 
-from flask import Blueprint, render_template
+from flask import Blueprint, abort, redirect, render_template
+from flask_login import current_user
 
 from app.extensions import db
 from app.models.event import CATEGORIES, Event
@@ -15,6 +17,18 @@ CATEGORY_ICONS = {
     "Seminars": "bi-mic",
     "Other": "bi-stars",
 }
+
+
+def page_role(role, login_url):
+    """Redirect to the login page unless the user has this role."""
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not current_user.is_authenticated or current_user.role != role:
+                return redirect(login_url)
+            return view(*args, **kwargs)
+        return wrapped
+    return decorator
 
 
 @pages_bp.app_template_filter("pretty_date")
@@ -39,6 +53,8 @@ def index():
     )
 
 
+# ---------- Auth pages ----------
+
 @pages_bp.route("/login")
 def login_page():
     return render_template(
@@ -61,3 +77,37 @@ def admin_login_page():
         "auth/auth.html", mode="admin",
         title="Admin login", subtitle="Organizers and administrators only.",
     )
+
+
+# ---------- Public event pages ----------
+
+@pages_bp.route("/events")
+def events_page():
+    return render_template("events/list.html", categories=CATEGORIES)
+
+
+@pages_bp.route("/events/<int:event_id>")
+def event_detail_page(event_id):
+    event = db.session.get(Event, event_id)
+    if event is None:
+        abort(404)
+
+    ended = datetime.combine(event.event_date, event.end_time) < datetime.now()
+    is_student = current_user.is_authenticated and current_user.role == "student"
+    return render_template(
+        "events/detail.html", event=event.to_dict(), ended=ended, is_student=is_student
+    )
+
+
+# ---------- Student pages ----------
+
+@pages_bp.route("/dashboard")
+@page_role("student", "/login")
+def student_dashboard():
+    return render_template("student/dashboard.html", active="dashboard")
+
+
+@pages_bp.route("/notifications")
+@page_role("student", "/login")
+def notifications_page():
+    return render_template("student/notifications.html", active="notifications")

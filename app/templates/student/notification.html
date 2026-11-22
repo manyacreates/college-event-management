@@ -1,0 +1,43 @@
+{% extends "student/layout.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block panel %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 fw-bold mb-0">Notifications</h1>
+  <button class="btn btn-outline-primary btn-sm" id="markAll">Mark all as read</button>
+</div>
+<div class="panel-card" id="noteList"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const list = document.getElementById("noteList");
+
+async function loadNotes() {
+  const r = await api("/api/notifications");
+  const notes = r.body.notifications || [];
+  list.innerHTML = notes.length
+    ? notes.map(n => `
+        <div class="note-row ${n.is_read ? "" : "unread"}">
+          <div>${esc(n.message)}<div class="small text-muted">${new Date(n.created_at).toLocaleString()}</div></div>
+          ${n.is_read ? "" : `<button class="btn btn-sm btn-outline-primary" data-id="${n.id}">Mark read</button>`}
+        </div>`).join("")
+    : emptyStateHtml("bi-bell-slash", "No notifications", "You're all caught up.");
+}
+
+list.addEventListener("click", async (e) => {
+  const button = e.target.closest("button[data-id]");
+  if (!button) return;
+  await api(`/api/notifications/${button.dataset.id}/read`, "POST");
+  loadNotes();
+});
+
+document.getElementById("markAll").addEventListener("click", async () => {
+  await api("/api/notifications/read-all", "POST");
+  showToast("All marked as read.");
+  loadNotes();
+});
+
+loadNotes();
+</script>
+{% endblock %}

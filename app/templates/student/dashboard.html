@@ -1,0 +1,61 @@
+{% extends "student/layout.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block panel %}
+<h1 class="h3 fw-bold">Welcome, {{ current_user.name }} 👋</h1>
+<p class="text-muted">Here is what's happening with your events.</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-4"><div class="stat-card"><span>Registered events</span><strong id="statRegistered">-</strong></div></div>
+  <div class="col-sm-6 col-xl-4"><div class="stat-card"><span>Upcoming for you</span><strong id="statUpcoming">-</strong></div></div>
+  <div class="col-sm-6 col-xl-4"><div class="stat-card"><span>Unread notifications</span><strong id="statUnread">-</strong></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-7">
+    <div class="panel-card">
+      <h2 class="h5 fw-bold mb-3">My registered events</h2>
+      <div id="myEvents"></div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="panel-card">
+      <div class="d-flex justify-content-between"><h2 class="h5 fw-bold mb-3">Recent notifications</h2>
+        <a href="/notifications" class="small text-decoration-none">View all</a></div>
+      <div id="recentNotes"></div>
+    </div>
+    <a href="/events" class="btn btn-primary w-100 mt-3">Browse events</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadDashboard() {
+  const [regs, notes] = await Promise.all([api("/api/registrations/me"), api("/api/notifications")]);
+
+  const active = (regs.body.registrations || []).filter(r => r.status === "registered");
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = active.filter(r => r.event.event_date >= today);
+
+  document.getElementById("statRegistered").textContent = active.length;
+  document.getElementById("statUpcoming").textContent = upcoming.length;
+  document.getElementById("statUnread").textContent = notes.body.unread_count ?? 0;
+
+  document.getElementById("myEvents").innerHTML = active.length
+    ? active.map(r => `
+        <a href="/events/${r.event.id}" class="list-row">
+          <div><strong>${esc(r.event.title)}</strong>
+            <div class="small text-muted">${prettyDate(r.event.event_date)} &middot; ${esc(r.event.venue)}</div></div>
+          <i class="bi bi-chevron-right"></i>
+        </a>`).join("")
+    : emptyStateHtml("bi-calendar-x", "No registrations yet", "Browse events and register for one.");
+
+  const recent = (notes.body.notifications || []).slice(0, 4);
+  document.getElementById("recentNotes").innerHTML = recent.length
+    ? recent.map(n => `<div class="note-row ${n.is_read ? "" : "unread"}">${esc(n.message)}</div>`).join("")
+    : '<p class="text-muted mb-0">No notifications yet.</p>';
+}
+loadDashboard();
+</script>
+{% endblock %}

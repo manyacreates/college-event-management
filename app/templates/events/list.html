@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Events{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="section-title">Browse events</h1>
+    <p class="section-sub">Search by name or filter by category.</p>
+
+    <div class="row g-2 mb-4">
+      <div class="col-md-7">
+        <input type="search" id="searchInput" class="form-control form-control-lg" placeholder="Search events...">
+      </div>
+      <div class="col-md-5">
+        <select id="categorySelect" class="form-select form-select-lg">
+          <option value="">All categories</option>
+          {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row g-4" id="eventGrid"></div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const grid = document.getElementById("eventGrid");
+const searchInput = document.getElementById("searchInput");
+const categorySelect = document.getElementById("categorySelect");
+
+const params = new URLSearchParams(window.location.search);
+if (params.get("category")) categorySelect.value = params.get("category");
+
+async function loadEvents() {
+  grid.innerHTML = '<div class="text-center text-muted py-5">Loading...</div>';
+  const query = new URLSearchParams({ q: searchInput.value, category: categorySelect.value });
+  const result = await api("/api/events?" + query);
+  const events = result.body.events || [];
+  grid.innerHTML = events.length
+    ? events.map(eventCardHtml).join("")
+    : `<div class="col-12">${emptyStateHtml("bi-search", "No events found", "Try a different search or category.")}</div>`;
+}
+
+let timer;
+searchInput.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(loadEvents, 300); });
+categorySelect.addEventListener("change", loadEvents);
+loadEvents();
+</script>
+{% endblock %}

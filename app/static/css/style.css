@@ -168,3 +168,31 @@
 .form-control { border-radius: 12px; border-color: var(--line); }
 .form-control:focus { border-color: var(--indigo-600); box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15); }
 .form-label { font-weight: 600; font-size: 0.9rem; }
+/* Dashboard layout */
+.dash { display: flex; min-height: calc(100vh - 140px); background: #f8fafc; }
+.sidebar { width: 230px; background: #fff; border-right: 1px solid var(--line); padding: 1.5rem 1rem; flex-shrink: 0; }
+.side-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 1rem; border-radius: 12px;
+  color: var(--muted); text-decoration: none; font-weight: 600; margin-bottom: 0.25rem; }
+.side-link:hover { background: var(--indigo-50); color: var(--indigo-600); }
+.side-link.active { background: var(--indigo-600); color: #fff; }
+.dash-main { flex: 1; padding: 2rem; min-width: 0; }
+@media (max-width: 767px) {
+  .dash { flex-direction: column; }
+  .sidebar { width: 100%; display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.75rem; border-right: 0; border-bottom: 1px solid var(--line); }
+  .side-link { white-space: nowrap; margin: 0; }
+  .dash-main { padding: 1rem; }
+}
+
+.stat-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow-sm); }
+.stat-card span { display: block; color: var(--muted); font-size: 0.85rem; font-weight: 600; }
+.stat-card strong { font-size: 2rem; font-weight: 800; color: var(--indigo-600); }
+.panel-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow-sm); }
+.list-row { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.list-row:last-child { border-bottom: 0; }
+.note-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.8rem 0.5rem; border-bottom: 1px solid var(--line); }
+.note-row:last-child { border-bottom: 0; }
+.note-row.unread { background: var(--indigo-50); border-radius: 10px; font-weight: 600; }
+
+/* Event detail */
+.detail-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+.detail-img { width: 100%; max-height: 320px; object-fit: cover; }

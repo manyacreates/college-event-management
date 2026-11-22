@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width: 860px;">
+    <a href="/events" class="text-decoration-none"><i class="bi bi-arrow-left"></i> All events</a>
+
+    <div class="detail-card mt-3">
+      {% if event.image_url %}<img src="{{ event.image_url }}" alt="" class="detail-img">{% endif %}
+      <div class="p-4">
+        <span class="badge badge-category">{{ event.category }}</span>
+        <h1 class="mt-3 fw-bold">{{ event.title }}</h1>
+        <ul class="event-meta list-unstyled fs-6 my-3">
+          <li><i class="bi bi-calendar3"></i> {{ event.event_date|pretty_date }}, {{ event.start_time }} to {{ event.end_time }}</li>
+          <li><i class="bi bi-geo-alt"></i> {{ event.venue }}</li>
+          <li><i class="bi bi-people"></i> {{ event.registered_count }} / {{ event.capacity }} registered
+              ({{ event.spots_left }} spots left)</li>
+        </ul>
+        <p class="text-muted">{{ event.description }}</p>
+
+        <div id="actionArea" data-event-id="{{ event.id }}"
+             data-student="{{ 'yes' if is_student else 'no' }}"
+             data-ended="{{ 'yes' if ended else 'no' }}"
+             data-full="{{ 'yes' if event.spots_left == 0 else 'no' }}"
+             class="mt-4"></div>
+      </div>
+    </div>
+
+    <div id="feedbackArea" class="detail-card p-4 mt-4 d-none">
+      <h2 class="h5 fw-bold">Share your feedback</h2>
+      <form id="feedbackForm">
+        <label class="form-label">Rating</label>
+        <select class="form-select mb-3" id="rating">
+          <option value="5">5 - Excellent</option>
+          <option value="4">4 - Good</option>
+          <option value="3">3 - Average</option>
+          <option value="2">2 - Poor</option>
+          <option value="1">1 - Terrible</option>
+        </select>
+        <label class="form-label">Comments (optional)</label>
+        <textarea class="form-control mb-3" id="comments" rows="3" maxlength="1000"></textarea>
+        <button class="btn btn-primary" type="submit">Submit feedback</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const area = document.getElementById("actionArea");
+const eventId = area.dataset.eventId;
+const isStudent = area.dataset.student === "yes";
+const ended = area.dataset.ended === "yes";
+const isFull = area.dataset.full === "yes";
+const feedbackArea = document.getElementById("feedbackArea");
+
+async function render() {
+  if (!isStudent) {
+    area.innerHTML = `<a href="/login" class="btn btn-primary btn-lg">Login to register</a>`;
+    return;
+  }
+
+  const mine = await api("/api/registrations/me");
+  const registered = (mine.body.registrations || []).some(
+    r => String(r.event_id) === eventId && r.status === "registered"
+  );
+
+  if (registered) {
+    area.innerHTML = ended
+      ? `<span class="badge text-bg-success fs-6">You attended this event</span>`
+      : `<span class="badge text-bg-success fs-6 me-3">You are registered</span>
+         <button class="btn btn-outline-danger" id="cancelBtn">Cancel registration</button>`;
+    if (ended) feedbackArea.classList.remove("d-none");
+  } else if (ended) {
+    area.innerHTML = `<span class="text-muted">This event has ended.</span>`;
+  } else if (isFull) {
+    area.innerHTML = `<button class="btn btn-secondary btn-lg" disabled>Fully booked</button>`;
+  } else {
+    area.innerHTML = `<button class="btn btn-primary btn-lg" id="registerBtn">Register for this event</button>`;
+  }
+}
+
+area.addEventListener("click", async (e) => {
+  const button = e.target.closest("button");
+  if (!button) return;
+
+  if (button.id === "registerBtn") {
+    button.disabled = true;
+    const r = await api(`/api/events/${eventId}/register`, "POST");
+    showToast(r.ok ? "Registered successfully!" : r.body.message, r.ok ? "success" : "danger");
+    if (r.ok) setTimeout(() => location.reload(), 800); else button.disabled = false;
+  }
+
+  if (button.id === "cancelBtn") {
+    if (!confirm("Cancel your registration?")) return;
+    const r = await api(`/api/events/${eventId}/register`, "DELETE");
+    showToast(r.ok ? "Registration cancelled." : r.body.message, r.ok ? "success" : "danger");
+    if (r.ok) setTimeout(() => location.reload(), 800);
+  }
+});
+
+document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const data = {
+    rating: Number(document.getElementById("rating").value),
+    comments: document.getElementById("comments").value,
+  };
+  let r = await api(`/api/events/${eventId}/feedback`, "POST", data);
+  if (r.status === 409) r = await api(`/api/events/${eventId}/feedback`, "PUT", data); // already submitted: edit it
+  showToast(r.ok ? "Thanks for your feedback!" : r.body.message, r.ok ? "success" : "danger");
+});
+
+render();
+</script>
+{% endblock %}
