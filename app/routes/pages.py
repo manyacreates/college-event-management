@@ -37,3 +37,27 @@ def index():
         events=[event.to_dict() for event in upcoming],
         categories=[(name, CATEGORY_ICONS[name]) for name in CATEGORIES],
     )
+
+
+@pages_bp.route("/login")
+def login_page():
+    return render_template(
+        "auth/auth.html", mode="login",
+        title="Welcome back", subtitle="Log in to see your events.",
+    )
+
+
+@pages_bp.route("/register")
+def register_page():
+    return render_template(
+        "auth/auth.html", mode="register",
+        title="Create your account", subtitle="Join CEMS and start registering for events.",
+    )
+
+
+@pages_bp.route("/admin/login")
+def admin_login_page():
+    return render_template(
+        "auth/auth.html", mode="admin",
+        title="Admin login", subtitle="Organizers and administrators only.",
+    )

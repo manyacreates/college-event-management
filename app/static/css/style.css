@@ -149,3 +149,22 @@
     .hero { padding: 3rem 0 4rem; }
     .section { padding: 3rem 0; }
   }
+  /* Auth pages */
+.auth-wrap {
+  min-height: calc(100vh - 140px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 3rem 1rem;
+  background:
+    radial-gradient(500px 300px at 90% 0%, rgba(139, 92, 246, 0.15), transparent 70%),
+    linear-gradient(180deg, var(--indigo-50), #fff);
+}
+.auth-card {
+  width: 100%; max-width: 440px; background: #fff;
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 2.25rem; box-shadow: var(--shadow-md);
+}
+.auth-title { font-size: 1.6rem; font-weight: 800; margin: 1rem 0 0.25rem; }
+.brand-mark-lg { width: 52px; height: 52px; font-size: 1.4rem; border-radius: 14px; }
+.form-control { border-radius: 12px; border-color: var(--line); }
+.form-control:focus { border-color: var(--indigo-600); box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15); }
+.form-label { font-weight: 600; font-size: 0.9rem; }

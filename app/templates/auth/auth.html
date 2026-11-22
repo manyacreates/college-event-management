@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card">
+    <div class="text-center mb-4">
+      <span class="brand-mark brand-mark-lg"><i class="bi bi-calendar2-event"></i></span>
+      <h1 class="auth-title">{{ title }}</h1>
+      <p class="text-muted mb-0">{{ subtitle }}</p>
+    </div>
+
+    <div id="formError" class="alert alert-danger d-none" role="alert"></div>
+
+    <form id="authForm" data-mode="{{ mode }}" novalidate>
+      {% if mode == "register" %}
+      <div class="mb-3">
+        <label for="name" class="form-label">Full name</label>
+        <input type="text" class="form-control form-control-lg" id="name" name="name" autocomplete="name" required>
+      </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control form-control-lg" id="email" name="email" autocomplete="email" required>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control form-control-lg" id="password" name="password"
+               autocomplete="{% if mode == 'register' %}new-password{% else %}current-password{% endif %}" required>
+        {% if mode == "register" %}<div class="form-text">At least 8 characters.</div>{% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100" id="submitButton">
+        {% if mode == "register" %}Create account{% else %}Login{% endif %}
+      </button>
+    </form>
+
+    <div class="text-center mt-4 small">
+      {% if mode == "login" %}
+        New here? <a href="/register">Create an account</a><br>
+        <a href="/admin/login" class="text-muted">Admin login</a>
+      {% elif mode == "register" %}
+        Already registered? <a href="/login">Login</a>
+      {% else %}
+        <a href="/login">Back to student login</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/auth.js"></script>
+{% endblock %}
